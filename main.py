@@ -5,11 +5,13 @@ import os
 import asyncio
 import functools
 from dotenv import load_dotenv
+from discord.ext import commands
+from views import ButtonView
 
 load_dotenv()
 
-print("FC Discord Bot for OpenAI. Build: v0.0.3-alpha-unstable")
-print("Discord Lib version: ", discord.__version__)
+print("FC Discord Bot for OpenAI. Build: v0.0.4-alpha")
+print("Pycord Lib version: ", discord.__version__)
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -20,7 +22,7 @@ intents.presences = False
 intents.messages = True
 intents.message_content = True
 
-client = discord.Client(intents=intents)
+bot = commands.Bot(command_prefix='!', intents=intents)
 
 
 async def create_chat_completion(prompt):
@@ -32,23 +34,29 @@ async def create_chat_completion(prompt):
                                     {"role": "user", "content": prompt}],
                                 max_tokens=1024,
                                 temperature=0,
-                                timeout=10)
+                                timeout=25)
     return await loop.run_in_executor(None, partial)
 
 
-@client.event
+@bot.event
 async def on_ready():
-    print('Logged in as {0.user}'.format(client))
+    print('Logged in as {0.user}'.format(bot))
 
 
-@client.event
+@bot.command()
+async def opt(ctx):
+    await ctx.send("Выберите одну из следующих опций:", view=ButtonView())
+
+
+@bot.event
 async def on_message(message):
+    await bot.process_commands(message)
     if message.author.bot:
         return
 
-    bot_mention = client.user.mention
-
+    bot_mention = bot.user.mention
     # Получаем все упоминания ролей бота
+
     bot_roles = [f'<@&{role.id}>' for role in message.guild.me.roles if not role.is_default()]
 
     if message.content.startswith('!gen') or message.content.startswith(bot_mention) or any(
@@ -79,4 +87,4 @@ async def on_message(message):
             await message.channel.send("Ошибка генерации сообщения 💀")
 
 
-client.run(TOKEN)
+bot.run(TOKEN)
