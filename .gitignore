@@ -1,5 +1,5 @@
 beta.py
-
+model.db
 # Исключаем файл .env
 .env
 

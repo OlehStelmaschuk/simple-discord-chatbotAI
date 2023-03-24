@@ -64,10 +64,16 @@ views.py:
 
 ## Changelog
 
+### v0.0.4a
+
+- Added command "!changemodel" for changing OpenAI model
+- Added "text-davinci-003" (more quickly but more inaccurate than GPT-3.5-TURBO) model support
+- Moved model files to models.py
+
 ### v0.0.4
 
 - Change library to PyCord
-- Added base button support by "!opt" command
+- Added base button support
 
 ### v0.0.3
 
