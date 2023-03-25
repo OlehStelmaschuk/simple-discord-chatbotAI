@@ -69,6 +69,22 @@ def clear_user_history(user_id):
     conn.close()
 
 
+async def clear_all_user_histories():
+    conn = sqlite3.connect('config.db')
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM user_histories")
+    conn.commit()
+    conn.close()
+
+
+def clear_tokens():
+    conn = sqlite3.connect('config.db')
+    cursor = conn.cursor()
+    cursor.execute("UPDATE api_tokens SET discord_token = '', openai_token = '' WHERE id = 1")
+    conn.commit()
+    conn.close()
+
+
 conn = sqlite3.connect("config.db")
 conn.execute("CREATE TABLE IF NOT EXISTS model_info (id INTEGER PRIMARY KEY, model_name TEXT NOT NULL)")
 conn.execute("INSERT OR IGNORE INTO model_info (id, model_name) VALUES (1, 'gpt-3.5-turbo')")

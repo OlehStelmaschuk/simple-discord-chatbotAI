@@ -1,5 +1,6 @@
 import sys
 import sqlite3
+import argparse
 import discord
 import openai
 import os
@@ -7,16 +8,26 @@ import asyncio
 import functools
 from dotenv import load_dotenv
 from discord.ext import commands
-from views import OptButtonView
+from views import OptButtonView, ClearAllButton
 from models import create_chat_completion_gpt35turbo, create_chat_completion_davinci
 from model_db import get_current_model, set_current_model, get_api_tokens, set_api_tokens, get_user_history, \
-    add_user_message, add_assistant_message, clear_user_history
+    add_user_message, add_assistant_message, clear_user_history, clear_all_user_histories, clear_tokens
+import ctypes
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-cleartoken", help="Очистить токены Discord и OpenAI", action="store_true")
+args = parser.parse_args()
+
+if args.cleartoken:
+    clear_tokens()
+    print("Токены Discord и OpenAI были успешно удалены.")
 
 # Изменение здесь - использование абсолютного пути к файлу .env
 env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
 load_dotenv(env_path)
 
 print("FC Discord Bot for OpenAI. Build: v0.0.5-alpha")
+ctypes.windll.kernel32.SetConsoleTitleW("FC Discord Bot (v0.0.5-alpha)")
 print("Pycord Lib version: ", discord.__version__)
 
 # Получение токенов из файла .env или базы данных
@@ -62,7 +73,17 @@ async def changemodel(ctx):
     await ctx.send("Выберите одну из следующих опций:", view=view)
 
 
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def clearall(ctx):
+    view = discord.ui.View()
+    clear_all_button = ClearAllButton(clear_all_user_histories)
+    view.add_item(clear_all_button)
+    await ctx.send("Нажмите кнопку ниже, чтобы очистить историю всех пользователей:", view=view)
+
+
 @changemodel.error
+@clearall.error
 async def forbidden_action(ctx, error):
     if isinstance(error, commands.MissingPermissions):
         await ctx.send("У вас нет прав администратора для выполнения этой команды.")
