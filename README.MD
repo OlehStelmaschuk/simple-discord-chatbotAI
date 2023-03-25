@@ -40,26 +40,58 @@ The application uses the following technologies:
 ## Technical Description by AI
 
 ```text
-This project consists of a Discord bot that utilizes OpenAI's GPT-3.5-turbo model to generate responses to user
-messages. The bot is built using the Pycord library and features a simple interactive menu with buttons.
+Title: Technical Specification for a Discord Chatbot with OpenAI API Integration
 
-main.py:
-1. Import necessary libraries and modules, including Discord, OpenAI, asyncio, functools, dotenv, and commands from the discord.ext module. Also, import the ButtonView class from the views module.
-2. Load environment variables from the .env file.
-3. Set the bot's token and OpenAI API key from the environment variables.
-4. Configure the bot's intents, allowing it to handle typing, messages, and message content events.
-5. Create a bot instance with a command prefix '!' and the configured intents.
-6. Define an asynchronous function, create_chat_completion(), that takes a prompt as an input and generates a response from the GPT-3.5-turbo model using the OpenAI API.
-7. Define an on_ready event handler that prints the bot's username when it logs in.
-8. Create a command called opt that sends a message with the ButtonView, allowing the user to select an option from the interactive menu.
-9. Define an on_message event handler that processes commands, checks for mentions of the bot, and generates a response using the create_chat_completion() function. The response is then sent back to the user in the same channel.
-10. Run the bot with the provided token.
+Objective: Develop a Discord chatbot that interacts with users using OpenAI API, allowing users to have conversations with the AI model and manage the chat history.
 
-views.py:
-1. Import the discord library.
-2. Define a ButtonView class that inherits from discord.ui.View.
-3. Create three buttons within the ButtonView class with different labels and styles.
-4. Define asynchronous button event handlers for each button that send a message with the user's choice when the button is clicked.
+**Functional Requirements:**
+
+1. Integration with OpenAI API:
+   1.1. Support for GPT-3 and GPT-3.5-turbo models.
+   1.2. Use OpenAI API tokens for authentication.
+   1.3. Allow changing the AI model at runtime.
+
+2. Discord bot functionality:
+   2.1. Respond to user messages when the bot is mentioned or when a specific command is used.
+   2.2. Support for basic user commands:
+        2.2.1. "!gen": Start a conversation with the AI model.
+        2.2.2. "!clear": Clear the user's message history.
+   2.3. Support for administrator commands:
+        2.3.1. "!changemodel": Change the AI model being used by the bot.
+        2.3.2. "!clearall": Clear the message history for all users.
+
+3. Chat history management:
+   3.1. Store and retrieve user chat history from a SQLite database.
+   3.2. Automatically clear the chat history for a user when requested.
+   3.3. Clear chat history for all users when requested by an administrator.
+
+4. User interface:
+   4.1. Use Discord's button and view components to create interactive dialogs for changing the AI model and clearing chat history.
+
+**Non-Functional Requirements:**
+
+1. Asynchronous programming using Python's asyncio library to avoid blocking the bot during API calls.
+2. Error handling for missing permissions and other issues during command execution.
+3. Use of environment variables or database storage for API tokens.
+
+**Technologies and Libraries:**
+
+1. Python 3
+2. Pycord (Discord API library)
+3. OpenAI Python library
+4. SQLite3
+5. dotenv
+
+**Deliverables:**
+
+1. Source code for the Discord bot:
+   1.1. main.py
+   1.2. model_db.py
+   1.3. views.py
+   1.4. models.py
+2. SQLite database schema for storing chat history and configuration data.
+3. Detailed comments and documentation within the code.
+4. A requirements.txt file specifying the necessary Python libraries.
 ```
 
 ## Changelog
