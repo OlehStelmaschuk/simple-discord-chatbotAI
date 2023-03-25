@@ -1,7 +1,7 @@
 beta.py
 config.db
-# Исключаем файл .env
 .env
+favicon.ico
 
 # Исключаем папку виртуального окружения
 venv/

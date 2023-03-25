@@ -64,6 +64,11 @@ views.py:
 
 ## Changelog
 
+### v0.0.5
+
+- Added favicon support
+- Added saving user history. The user can clear his history with the command `!clear`
+
 ### v0.0.4b
 
 - Added SQLite support for storing data about the current model instead of storing data in a file (config.db)
@@ -72,7 +77,7 @@ views.py:
 
 ### v0.0.4a
 
-- Added command "!changemodel" for changing OpenAI model
+- Added command `!changemodel` for changing OpenAI model
 - Added "text-davinci-003" (more quickly but more inaccurate than GPT-3.5-TURBO) model support
 - Moved model files to models.py
 

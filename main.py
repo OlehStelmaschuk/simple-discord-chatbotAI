@@ -9,13 +9,14 @@ from dotenv import load_dotenv
 from discord.ext import commands
 from views import OptButtonView
 from models import create_chat_completion_gpt35turbo, create_chat_completion_davinci
-from model_db import get_current_model, set_current_model, get_api_tokens, set_api_tokens
+from model_db import get_current_model, set_current_model, get_api_tokens, set_api_tokens, get_user_history, \
+    add_user_message, add_assistant_message, clear_user_history
 
 # Изменение здесь - использование абсолютного пути к файлу .env
 env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
 load_dotenv(env_path)
 
-print("FC Discord Bot for OpenAI. Build: v0.0.4b-alpha")
+print("FC Discord Bot for OpenAI. Build: v0.0.5-alpha")
 print("Pycord Lib version: ", discord.__version__)
 
 # Получение токенов из файла .env или базы данных
@@ -45,6 +46,13 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 @bot.event
 async def on_ready():
     print('Logged in as {0.user}'.format(bot))
+
+
+@bot.command()
+async def clear(ctx):
+    user_id = ctx.author.id
+    clear_user_history(user_id)
+    await ctx.send(f"История сообщений пользователя {ctx.author.mention} была успешно удалена.")
 
 
 @bot.command()
@@ -80,31 +88,47 @@ async def on_message(message):
         print('=====================')
         print('')
 
+        prompt = None  # добавьте это
         if message.content.startswith('!gen'):
             prompt = message.content[5:]
         elif message.content.startswith(bot_mention):
             prompt = message.content[len(bot_mention) + 1:]
         else:
-            role_mention = next(role_mention for role_mention in bot_roles if message.content.startswith(role_mention))
-            prompt = message.content[len(role_mention) + 1:]
+            for role_mention in bot_roles:
+                if message.content.startswith(role_mention):
+                    prompt = message.content[len(role_mention) + 1:]
+                    break
 
-        # Загрузка текущей модели из базы данных
-        current_model = get_current_model()
+        if prompt:  # добавьте это
+            # Загрузка текущей модели из базы данных
+            current_model = get_current_model()
 
-        try:
-            if current_model == 'gpt-3.5-turbo':
-                response = await asyncio.wait_for(create_chat_completion_gpt35turbo(prompt), 60)
-                response_text = response.choices[0].message['content']
-            elif current_model == 'text-davinci-003':
-                response = await asyncio.wait_for(create_chat_completion_davinci(prompt), 60)
-                response_text = response.choices[0].text
+            user_id = str(message.author.id)
+            user_history = get_user_history(user_id)
 
-            if isinstance(message.channel, discord.TextChannel):
-                chunks = [response_text[i:i + 2000] for i in range(0, len(response_text), 2000)]
-                for chunk in chunks:
-                    await message.channel.send(chunk)
-        except asyncio.TimeoutError:
-            await message.channel.send("Ошибка генерации сообщения 💀")
+            if not user_history:
+                user_history = [{"role": "system", "content": "You are sarcastic assistant. Your name is Пафнутий"}]
+
+            user_history.append({"role": "user", "content": prompt})
+
+            try:
+                if current_model == 'gpt-3.5-turbo':
+                    response = await asyncio.wait_for(create_chat_completion_gpt35turbo(user_history), 60)
+                    response_text = response.choices[0].message['content']
+                elif current_model == 'text-davinci-003':
+                    response = await asyncio.wait_for(create_chat_completion_davinci(prompt), 60)
+                    response_text = response.choices[0].text
+
+                user_history.append({"role": "assistant", "content": response_text})
+                add_user_message(user_id, prompt)
+                add_assistant_message(user_id, response_text)
+
+                if isinstance(message.channel, discord.TextChannel):
+                    chunks = [response_text[i:i + 2000] for i in range(0, len(response_text), 2000)]
+                    for chunk in chunks:
+                        await message.channel.send(chunk)
+            except asyncio.TimeoutError:
+                await message.channel.send("Ошибка генерации сообщения 💀")
 
 
 bot.run(DISCORD_TOKEN)

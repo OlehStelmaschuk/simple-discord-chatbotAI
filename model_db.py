@@ -1,7 +1,6 @@
 import sqlite3
 
 
-# Функции get_api_tokens и set_api_tokens добавлены для работы с токенами API
 def get_api_tokens():
     conn = sqlite3.connect('config.db')
     cursor = conn.cursor()
@@ -37,16 +36,54 @@ def set_current_model(model_name):
     conn.close()
 
 
+def get_user_history(user_id):
+    conn = sqlite3.connect('config.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT message, role FROM user_histories WHERE user_id = ? ORDER BY id", (user_id,))
+    user_history = cursor.fetchall()
+    conn.close()
+    return [{"role": item[1], "content": item[0]} for item in user_history]
+
+
+def add_user_message(user_id, message):
+    conn = sqlite3.connect('config.db')
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO user_histories (user_id, message, role) VALUES (?, ?, 'user')", (user_id, message))
+    conn.commit()
+    conn.close()
+
+
+def add_assistant_message(user_id, message):
+    conn = sqlite3.connect('config.db')
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO user_histories (user_id, message, role) VALUES (?, ?, 'assistant')", (user_id, message))
+    conn.commit()
+    conn.close()
+
+
+def clear_user_history(user_id):
+    conn = sqlite3.connect('config.db')
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM user_histories WHERE user_id = ?", (user_id,))
+    conn.commit()
+    conn.close()
+
+
 conn = sqlite3.connect("config.db")
 conn.execute("CREATE TABLE IF NOT EXISTS model_info (id INTEGER PRIMARY KEY, model_name TEXT NOT NULL)")
 conn.execute("INSERT OR IGNORE INTO model_info (id, model_name) VALUES (1, 'gpt-3.5-turbo')")
 conn.commit()
 conn.close()
 
-# Создание таблицы api_tokens для хранения токенов API, если она не существует
 conn = sqlite3.connect("config.db")
 conn.execute(
     "CREATE TABLE IF NOT EXISTS api_tokens (id INTEGER PRIMARY KEY, discord_token TEXT NOT NULL, openai_token TEXT NOT NULL)")
 conn.execute("INSERT OR IGNORE INTO api_tokens (id, discord_token, openai_token) VALUES (1, '', '')")
+conn.commit()
+conn.close()
+
+conn = sqlite3.connect("config.db")
+conn.execute(
+    "CREATE TABLE IF NOT EXISTS user_histories (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT NOT NULL, message TEXT NOT NULL, role TEXT NOT NULL)")
 conn.commit()
 conn.close()
