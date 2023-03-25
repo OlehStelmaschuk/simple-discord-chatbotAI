@@ -27,7 +27,7 @@ env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
 load_dotenv(env_path)
 
 print("FC Discord Bot for OpenAI. Build: v0.0.5-alpha")
-ctypes.windll.kernel32.SetConsoleTitleW("FC Discord Bot (v0.0.5-alpha)")
+ctypes.windll.kernel32.SetConsoleTitleW("FC Discord Bot (v0.0.5-alpha")
 print("Pycord Lib version: ", discord.__version__)
 
 # Получение токенов из файла .env или базы данных

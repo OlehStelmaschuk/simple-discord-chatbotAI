@@ -64,13 +64,16 @@ views.py:
 
 ## Changelog
 
+### v0.0.5b
+
+- Minor bugfixes
+
 ### v0.0.5a
 
 - Added `!clearall` command for clear all user history in database
 - After using the commands `!changemodel` and `!clearall`, the buttons go into the inactive state, thus prohibiting
   their reuse
 - Added argument `-cleartoken` to delete API tokens from database. Usage: `chatbot.exe -cleartoken`
-- Added title for build
 
 ### v0.0.5
 

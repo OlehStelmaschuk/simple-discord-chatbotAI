@@ -32,4 +32,4 @@ class ClearAllButton(discord.ui.Button):
         await self.clear_all_user_histories_callback()
         await interaction.response.send_message("История всех пользователей успешно очищена.", ephemeral=True)
         self.disabled = True
-        await interaction.message.edit(view=interaction.view)
+        await interaction.message.edit(view=self.view)  # Используйте self.view вместо interaction.view
