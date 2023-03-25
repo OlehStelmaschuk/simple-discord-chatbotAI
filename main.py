@@ -1,4 +1,5 @@
 import sys
+import sqlite3
 import discord
 import openai
 import os
@@ -8,18 +9,29 @@ from dotenv import load_dotenv
 from discord.ext import commands
 from views import OptButtonView
 from models import create_chat_completion_gpt35turbo, create_chat_completion_davinci
+from model_db import get_current_model, set_current_model, get_api_tokens, set_api_tokens
 
-load_dotenv()
+# Изменение здесь - использование абсолютного пути к файлу .env
+env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+load_dotenv(env_path)
 
-print("FC Discord Bot for OpenAI. Build: v0.0.4a-alpha")
+print("FC Discord Bot for OpenAI. Build: v0.0.4b-alpha")
 print("Pycord Lib version: ", discord.__version__)
 
-if not os.path.exists("model.db"):
-    with open("model.db", "w") as f:
-        f.write("gpt-3.5-turbo")
+# Получение токенов из файла .env или базы данных
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-TOKEN = os.getenv("DISCORD_TOKEN")
-openai.api_key = os.getenv("OPENAI_API_KEY")
+if not DISCORD_TOKEN or not OPENAI_API_KEY:
+    DISCORD_TOKEN, OPENAI_API_KEY = get_api_tokens()
+
+# Если токены отсутствуют, запросите их у пользователя и сохраните в базе данных
+if not DISCORD_TOKEN or not OPENAI_API_KEY:
+    DISCORD_TOKEN = input("Введите API токен Discord: ")
+    OPENAI_API_KEY = input("Введите API токен OpenAI: ")
+    set_api_tokens(DISCORD_TOKEN, OPENAI_API_KEY)
+
+openai.api_key = OPENAI_API_KEY
 
 intents = discord.Intents.default()
 intents.typing = True
@@ -36,8 +48,18 @@ async def on_ready():
 
 
 @bot.command()
+@commands.has_permissions(administrator=True)
 async def changemodel(ctx):
-    await ctx.send("Выберите одну из следующих опций:", view=OptButtonView())
+    view = OptButtonView(model_change_listener=set_current_model)
+    await ctx.send("Выберите одну из следующих опций:", view=view)
+
+
+@changemodel.error
+async def forbidden_action(ctx, error):
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send("У вас нет прав администратора для выполнения этой команды.")
+    else:
+        await ctx.send("Произошла ошибка при выполнении команды.")
 
 
 @bot.event
@@ -66,9 +88,8 @@ async def on_message(message):
             role_mention = next(role_mention for role_mention in bot_roles if message.content.startswith(role_mention))
             prompt = message.content[len(role_mention) + 1:]
 
-        # Загрузка текущей модели из файла
-        with open("model.db", "r") as file:
-            current_model = file.read().strip()
+        # Загрузка текущей модели из базы данных
+        current_model = get_current_model()
 
         try:
             if current_model == 'gpt-3.5-turbo':
@@ -86,4 +107,4 @@ async def on_message(message):
             await message.channel.send("Ошибка генерации сообщения 💀")
 
 
-bot.run(TOKEN)
+bot.run(DISCORD_TOKEN)

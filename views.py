@@ -1,29 +1,20 @@
 import discord
-import os
 
 
 class OptButtonView(discord.ui.View):
-    def __init__(self):
+    def __init__(self, model_change_listener=None):
         super().__init__()
+        self.model_change_listener = model_change_listener
+
+    async def set_model_and_respond(self, model_name, interaction):
+        if self.model_change_listener:
+            self.model_change_listener(model_name)
+        await interaction.response.send_message(f"Модель переключена на {model_name}", ephemeral=True)
 
     @discord.ui.button(label="GPT-3", style=discord.ButtonStyle.success)
     async def button_1(self, button: discord.ui.Button, interaction: discord.Interaction):
-        global current_model
-        current_model = 'text-davinci-003'
-        with open("model.db", "w") as file:
-            file.write(current_model)
-        await interaction.response.send_message("Модель переключена на text-davinci-003", ephemeral=True)
+        await self.set_model_and_respond('text-davinci-003', interaction)
 
     @discord.ui.button(label="GPT-3.5-turbo", style=discord.ButtonStyle.danger)
     async def button_2(self, button: discord.ui.Button, interaction: discord.Interaction):
-        global current_model
-        current_model = 'gpt-3.5-turbo'
-        with open("model.db", "w") as file:
-            file.write(current_model)
-        await interaction.response.send_message("Модель переключена на gpt-3.5-turbo", ephemeral=True)
-
-    """
-    @discord.ui.button(label="Выбор 3", style=discord.ButtonStyle.primary)
-    async def button_3(self, button: discord.ui.Button, interaction: discord.Interaction):
-        await interaction.response.send_message("Вы выбрали 3", ephemeral=True)
-    """
+        await self.set_model_and_respond('gpt-3.5-turbo', interaction)

@@ -64,6 +64,12 @@ views.py:
 
 ## Changelog
 
+### v0.0.4b
+
+- Added SQLite support for storing data about the current model instead of storing data in a file (config.db)
+- Added support for saving token in SQLite database on first launch
+- Added a check to see if the user is a server administrator when trying to change ChatGPT models
+
 ### v0.0.4a
 
 - Added command "!changemodel" for changing OpenAI model
